@@ -1,0 +1,7 @@
+Explain the result in simple business language.
+
+Query:
+{query}
+
+Result:
+{result}
