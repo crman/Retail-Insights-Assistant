@@ -11,13 +11,6 @@ from utils.db_utils import execute_sql_query
 def format_results_for_display(results: List[tuple], limit: int = 10) -> str:
     """
     Format SQL results for display.
-    
-    Args:
-        results: List of result tuples from SQL query
-        limit: Maximum number of rows to display
-        
-    Returns:
-        Formatted string representation
     """
     if not results:
         return "No results found"
@@ -36,12 +29,6 @@ def format_results_for_display(results: List[tuple], limit: int = 10) -> str:
 def data_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     """
     Execute SQL query and return results.
-    
-    Args:
-        state: Current agent state with sql_query
-        
-    Returns:
-        Updated state with raw_result
     """
     print("[DATA AGENT] Executing SQL query...")
     

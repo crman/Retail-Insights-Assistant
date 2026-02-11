@@ -9,14 +9,20 @@ Table: {table_name}
 Generate a SQL query to answer the following question.
 
 **Requirements:**
-1. Return ONLY the SQL query, no explanations
-2. Use proper SQLite SQL syntax
-3. Include appropriate aggregations, filters, and grouping
-4. Limit results to top 20 rows if returning multiple rows
-5. Use meaningful column aliases for calculated fields
-6. Handle NULL values appropriately
+1. **Clarity Check**: If the question is vague (e.g., "check again", "show more", "thanks"), or if it's a social interaction (e.g., "Hello"), and the **Conversation History** doesn't provide enough context to generate a meaningful SQL query, **DO NOT** generate SQL. Instead, return: `CLARIFICATION_REQUIRED: <A polite, professional note acknowledging the user and explaining what specific information is needed to help them better>`.
+2. Return ONLY the SQL query (or the clarification flag), no other text.
+3. Use proper SQLite SQL syntax.
+4. **STRICTLY** use only the columns listed in the schema provided above.
+5. **DO NOT** assume or reference any tables other than `{table_name}`.
+6. Include appropriate aggregations, filters, and grouping.
+7. Limit results to top 20 rows if returning multiple rows.
+8. Use meaningful column aliases for calculated fields.
+9. Handle NULL values appropriately.
+
+**Conversation History:**
+{history}
 
 **Question:**
 {question}
 
-**SQL Query:**
+**SQL Query (or CLARIFICATION_REQUIRED):**

@@ -13,12 +13,29 @@ builder.add_node("query_agent", query_agent)
 builder.add_node("data_agent", data_agent)
 builder.add_node("validation_agent", validation_agent)
 
-# Define the workflow
-# Start with query agent (generates SQL)
+# Define routing logic
+def router(state: AgentState):
+    """
+    Route to data_agent if SQL was generated, 
+    otherwise skip to validation if clarification is needed.
+    """
+    sql = state.get("sql_query", "")
+    if sql and "CLARIFICATION_REQUIRED" in sql:
+        return "validation_agent"
+    return "data_agent"
+
+# Start with query agent
 builder.set_entry_point("query_agent")
 
-# Query agent → Data agent (both QA and Summary use same flow now)
-builder.add_edge("query_agent", "data_agent")
+# Conditional routing from query agent
+builder.add_conditional_edges(
+    "query_agent",
+    router,
+    {
+        "data_agent": "data_agent",
+        "validation_agent": "validation_agent"
+    }
+)
 
 # Data agent → Validation agent
 builder.add_edge("data_agent", "validation_agent")

@@ -1,8 +1,3 @@
-"""
-Simple Configuration
-Loads environment variables and basic app settings.
-"""
-
 import os
 from dotenv import load_dotenv
 

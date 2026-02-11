@@ -1,8 +1,8 @@
-# Retail Insights Assistant 🚀
+# Retail Insights Assistant
 
 A **GenAI-powered multi-agent system** for analyzing retail sales data using natural language queries. Built with LangGraph, SQLite3, and Groq/Gemini LLMs.
 
-## 📋 Features
+## Features
 
 - **Text-to-SQL** conversion using curated prompt engineering.
 - **Multi-agent architecture**:
@@ -13,14 +13,14 @@ A **GenAI-powered multi-agent system** for analyzing retail sales data using nat
 - **SQLite3** data layer for efficient local analysis.
 - **Natural language** answers with professional business insights.
 
-## 🏗️ Architecture
+## Architecture
 
-```
+```text
 User Input → Query Agent → Data Agent → Validation Agent → Natural Language Answer
               (Text→SQL)    (Execute)     (Verify & Summarize)
 ```
 
-## 🚀 Execution Guide
+## Execution Guide
 
 Follow these steps to set up and run the assistant on your local machine.
 
@@ -29,7 +29,7 @@ Follow these steps to set up and run the assistant on your local machine.
 Ensure you have Python 3.10 or higher installed.
 
 ```bash
-# Clone the repository (if applicable)
+# Clone the repository
 # cd Retail-Insights-Assistant
 
 # Create a virtual environment
@@ -67,13 +67,13 @@ python sql/setup_database.py
 
 ### 5. Run the Application
 
-Start the conversational assistant:
+Start the modern web-based assistant:
 
 ```bash
-python app.py
+streamlit run streamlit_app.py
 ```
 
-## 📊 Usage
+## Usage
 
 Once the application is running:
 
@@ -82,9 +82,9 @@ Once the application is running:
    - **QA Mode**: Ask specific questions like *"Which product line had the highest sales in Q3?"*
    - **Summary Mode**: Get an automated business overview of the entire table.
 
-## 📁 Project Structure
+## Project Structure
 
-```
+```text
 Retail-Insights-Assistant/
 ├── agents/
 │   ├── query_agent.py      # Text-to-SQL generation
@@ -92,8 +92,7 @@ Retail-Insights-Assistant/
 │   ├── validation_agent.py # Insight verification & summary
 │   └── state.py            # LangGraph state definition
 ├── configs/
-│   ├── config.py           # App & LLM configurations
-│   └── env_config.py       # Environment variable loader
+│   ├── config.py           # LLM configurations and env variables loader
 ├── prompts/
 │   ├── qa_sql_prompt.txt      # Prompt for QA mode
 │   ├── summary_sql_prompt.txt # Prompt for Summary mode
@@ -105,15 +104,41 @@ Retail-Insights-Assistant/
 │   └── db_utils.py          # Database helper functions
 ├── data/                    # Raw CSV datasets
 ├── graph.py                 # LangGraph workflow definition
-├── app.py                   # Main entry point (Streamlit/CLI)
+├── streamlit_app.py         # Main entry point (Streamlit UI)
 └── requirements.txt
 ```
 
-## 🛠️ Technologies
+## Technologies
 
-- **LangGraph**: Multi-agent orchestration and state management.
+- **LangGraph & LangChain**: Multi-agent orchestration and state management.
 - **SQLite3**: Local relational database for structured querying.
 - **Groq**: Ultra-fast LLM inference (Llama 3 / Mixtral).
 - **Google Gemini**: Alternative LLM provider support.
 - **Pandas**: Data cleaning and preprocessing during ingestion.
 
+---
+
+## Technical Notes
+
+### Assumptions
+
+- **Schema Clarity**: Assumes CSV column names are somewhat descriptive (e.g., `gross_amt` for revenue).
+- **Data Quality**: Assumes the ingestion script manages basic cleaning (handling commas in numeric strings, etc.).
+- **Single Table Focus**: Currently optimized for single-table deep dives rather than complex multi-table joins.
+
+### Limitations
+
+- **Natural Language Complexity**: Highly ambiguous questions may still require user clarification.
+- **Aggregation Limits**: Complex statistical models (like linear regression) are out of scope for the current SQL generator.
+- **Local Context**: The system is limited by the context window of the LLM for extremely large schema definitions.
+
+### Scaling to 100GB+ (Future Roadmap)
+
+To handle enterprise-scale datasets (100GB+), the following architecture changes are planned:
+
+1. **Storage Layer Migration**: Transition from SQLite to **Snowflake or BigQuery**.
+2. **Semantic Search for Schema**: Use a vector database (e.g., Pinecone) to perform a "Metadata Search" so the LLM only sees the relevant table schemas for a specific question, reducing token usage.
+3. **Partitioning**: Leverage **Parquet** files partitioned by date/region for faster data retrieval.
+4. **Distributed Compute**: Use **Apache Spark** for pre-calculating common aggregations (Summary Tables).
+5. **Caching**: Implement **Semantic Caching** (Redis) to store natural language responses for frequently asked questions.
+6. **LangGraph Checkpointer Integration**: Use **LangGraph Checkpointer** for error recovery and session based state persistence.
