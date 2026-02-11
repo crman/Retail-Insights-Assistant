@@ -11,10 +11,17 @@ llm = ChatGroq(model=config.LLM_MODEL, temperature=config.LLM_TEMPERATURE)
 
 def load_validation_prompt() -> PromptTemplate:
     """
-    Load the validation prompt template.
+    Load the validation prompt template from file.
+    
+    Returns:
+        PromptTemplate object
     """
-    with open("prompts/validation_prompt.txt", 'r') as f:
-        template = f.read()
+    try:
+        with open("prompts/validation_prompt.txt", 'r') as f:
+            template = f.read()
+    except FileNotFoundError:
+        print("ERROR: validation_prompt.txt not found.")
+        template = "Results: {results}\nBusiness Insight:"
     
     return PromptTemplate(
         input_variables=["mode", "question", "sql_query", "results", "history"],
@@ -22,9 +29,16 @@ def load_validation_prompt() -> PromptTemplate:
     )
 
 
-def format_results_for_llm(results: list, max_rows: int = 50) -> str:
+def format_results_for_llm(results: List[Dict[str, Any]], max_rows: int = 50) -> str:
     """
     Format SQL results for LLM processing.
+    
+    Args:
+        results: List of result dictionaries
+        max_rows: Maximum rows to include in context
+        
+    Returns:
+        Formatted string of results
     """
     if not results:
         return "No results returned from the query."
@@ -50,7 +64,13 @@ def format_results_for_llm(results: list, max_rows: int = 50) -> str:
 
 def format_history_for_prompt(history: List[Dict[str, str]]) -> str:
     """
-    Format previous conversation turns for LLM prompt.
+    Format previous conversation turns for LLM prompt context.
+    
+    Args:
+        history: List of interaction dictionaries
+        
+    Returns:
+        Formatted history string
     """
     if not history:
         return "No previous interactions."
