@@ -1,0 +1,30 @@
+from langgraph.graph import StateGraph
+from agents.state import AgentState
+from agents.query_agent import query_agent
+from agents.data_agent import data_agent
+from agents.validation_agent import validation_agent
+
+
+# Create the state graph
+builder = StateGraph(AgentState)
+
+# Add nodes for each agent
+builder.add_node("query_agent", query_agent)
+builder.add_node("data_agent", data_agent)
+builder.add_node("validation_agent", validation_agent)
+
+# Define the workflow
+# Start with query agent (generates SQL)
+builder.set_entry_point("query_agent")
+
+# Query agent → Data agent (both QA and Summary use same flow now)
+builder.add_edge("query_agent", "data_agent")
+
+# Data agent → Validation agent
+builder.add_edge("data_agent", "validation_agent")
+
+# End at validation agent
+builder.set_finish_point("validation_agent")
+
+# Compile the graph
+graph = builder.compile()
