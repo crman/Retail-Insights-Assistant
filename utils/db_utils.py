@@ -1,7 +1,3 @@
-"""
-Database utility functions for SQLite3 operations.
-"""
-
 import sqlite3
 from typing import Any, Dict, List
 
@@ -15,9 +11,6 @@ DATABASE_PATH = config.DATABASE_PATH
 def get_connection() -> sqlite3.Connection:
     """
     Create and return a database connection.
-    
-    Returns:
-        SQLite3 connection object
     """
     return sqlite3.connect(DATABASE_PATH)
 
@@ -25,9 +18,6 @@ def get_connection() -> sqlite3.Connection:
 def get_available_tables() -> List[str]:
     """
     Get list of all tables in the database.
-    
-    Returns:
-        List of table names
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -42,12 +32,6 @@ def get_available_tables() -> List[str]:
 def get_table_schema(table_name: str) -> Dict[str, Any]:
     """
     Get schema information for a specific table.
-    
-    Args:
-        table_name: Name of the table
-        
-    Returns:
-        Dictionary containing table schema information
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -83,12 +67,6 @@ def get_table_schema(table_name: str) -> Dict[str, Any]:
 def get_table_preview(table_name: str) -> str:
     """
     Get a preview string for a table (for display purposes).
-    
-    Args:
-        table_name: Name of the table
-        
-    Returns:
-        String with table preview info
     """
     try:
         schema = get_table_schema(table_name)
@@ -110,12 +88,6 @@ def get_table_preview(table_name: str) -> str:
 def execute_sql_query(sql_query: str) -> List[Dict[str, Any]]:
     """
     Execute a SQL query and return results.
-    
-    Args:
-        sql_query: SQL query string
-        
-    Returns:
-        List of dictionaries, each representing a row
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -142,21 +114,11 @@ def execute_sql_query(sql_query: str) -> List[Dict[str, Any]]:
 def format_results_for_display(results: List[Dict[str, Any]], limit: int = 10) -> str:
     """
     Format query results for display.
-    
-    Args:
-        results: List of result dictionaries
-        limit: Maximum number of rows to display
-        
-    Returns:
-        Formatted string representation
     """
     if not results:
         return "No results found"
     
     display_results = results[:limit]
-    
-    # Get column names
-    columns = list(display_results[0].keys())
     
     # Create formatted output
     output_lines = [f"Found {len(results)} result(s):"]
@@ -174,12 +136,6 @@ def format_results_for_display(results: List[Dict[str, Any]], limit: int = 10) -
 def format_results_for_llm(results: List[Dict[str, Any]]) -> str:
     """
     Format query results for LLM consumption.
-    
-    Args:
-        results: List of result dictionaries
-        
-    Returns:
-        Formatted string for LLM
     """
     if not results:
         return "No results found"

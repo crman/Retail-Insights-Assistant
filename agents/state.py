@@ -13,6 +13,7 @@ class AgentState(TypedDict):
         sql_query: Generated SQL query
         raw_result: Raw results from SQL execution
         final_answer: Natural language answer for the user
+        history: List of previous conversation turns (Q&A pairs)
     """
     mode: str
     table: str
@@ -21,3 +22,4 @@ class AgentState(TypedDict):
     sql_query: Optional[str]
     raw_result: Optional[List[Any]]
     final_answer: Optional[str]
+    history: List[Dict[str, str]]

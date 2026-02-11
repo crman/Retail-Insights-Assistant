@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 
@@ -21,7 +21,7 @@ def load_prompt_template(mode: str) -> PromptTemplate:
     
     if mode == "qa":
         return PromptTemplate(
-            input_variables=["table_name", "schema", "question"],
+            input_variables=["table_name", "schema", "question", "history"],
             template=template
         )
     else:  # summary
@@ -29,6 +29,21 @@ def load_prompt_template(mode: str) -> PromptTemplate:
             input_variables=["table_name", "schema"],
             template=template
         )
+
+
+def format_history_for_prompt(history: List[Dict[str, str]]) -> str:
+    """
+    Format previous conversation turns for LLM prompt.
+    """
+    if not history:
+        return "No previous interactions."
+    
+    formatted_turns = []
+    # Only take last 5 turns to avoid context overflow
+    for turn in history[-5:]:
+        formatted_turns.append(f"Q: {turn['question']}\nA: {turn['answer']}")
+        
+    return "\n\n".join(formatted_turns)
 
 
 def format_schema_for_prompt(schema: Dict[str, Any]) -> str:
@@ -79,10 +94,12 @@ def query_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     print("Generating SQL query with LLM...")
     
     if state['mode'] == 'qa':
+        history_text = format_history_for_prompt(state.get('history', []))
         prompt_text = prompt_template.format(
             table_name=state['table'],
             schema=schema_text,
-            question=state['question']
+            question=state['question'],
+            history=history_text
         )
     else:  # summary
         prompt_text = prompt_template.format(
@@ -90,10 +107,18 @@ def query_agent(state: Dict[str, Any]) -> Dict[str, Any]:
             schema=schema_text
         )
     
-    response = llm.invoke(prompt_text).content
+    response = llm.invoke(prompt_text).content.strip()
     
+    # Check for clarification request
+    if "CLARIFICATION_REQUIRED" in response:
+        print("  Result: Clarification requested by LLM")
+        return {
+            "sql_query": response, # Pass the message directly
+            "table_schema": schema
+        }
+
     # Extract SQL query (remove markdown formatting if present)
-    sql_query = response.strip()
+    sql_query = response
     if sql_query.startswith("```sql"):
         sql_query = sql_query.replace("```sql", "").replace("```", "").strip()
     elif sql_query.startswith("```"):

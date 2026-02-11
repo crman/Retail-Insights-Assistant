@@ -1,8 +1,3 @@
-"""
-Database setup script for Retail Insights Assistant.
-Converts CSV files to SQLite3 database tables.
-"""
-
 import os
 import sqlite3
 from typing import Dict, List

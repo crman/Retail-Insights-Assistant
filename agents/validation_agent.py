@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 from langchain_groq import ChatGroq
 from langchain_core.prompts import PromptTemplate
 
@@ -17,7 +17,7 @@ def load_validation_prompt() -> PromptTemplate:
         template = f.read()
     
     return PromptTemplate(
-        input_variables=["mode", "question", "sql_query", "results"],
+        input_variables=["mode", "question", "sql_query", "results", "history"],
         template=template
     )
 
@@ -46,6 +46,20 @@ def format_results_for_llm(results: list, max_rows: int = 50) -> str:
         lines.append(f"... and {len(results) - max_rows} more rows")
     
     return "\n".join(lines)
+
+
+def format_history_for_prompt(history: List[Dict[str, str]]) -> str:
+    """
+    Format previous conversation turns for LLM prompt.
+    """
+    if not history:
+        return "No previous interactions."
+    
+    formatted_turns = []
+    for turn in history[-3:]: # Last 3 turns for context
+        formatted_turns.append(f"Q: {turn['question']}\nA: {turn['answer']}")
+        
+    return "\n\n".join(formatted_turns)
 
 
 def validation_agent(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -80,9 +94,11 @@ def validation_agent(state: Dict[str, Any]) -> Dict[str, Any]:
     prompt_template = load_validation_prompt()
     
     # Generate natural language explanation
+    history_text = format_history_for_prompt(state.get('history', []))
     prompt_text = prompt_template.format(
         mode=state.get('mode', 'qa'),
         question=state.get('question', 'summary'),
+        history=history_text,
         sql_query=sql_query,
         results=results_text
     )

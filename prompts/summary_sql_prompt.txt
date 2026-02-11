@@ -9,14 +9,16 @@ Table: {table_name}
 Generate a SQL query that provides a comprehensive summary of this dataset.
 
 **Requirements:**
-1. Return ONLY the SQL query, no explanations
-2. Include key metrics such as:
+1. Return ONLY the SQL query, no explanations.
+2. **STRICTLY** use only the columns listed in the schema provided above.
+3. **DO NOT** assume or reference any tables other than `{table_name}`.
+4. Include key metrics such as:
    - Total record count
    - Aggregations (SUM, AVG, MIN, MAX) for numeric columns
    - Count of unique categories/groups
    - Time-based aggregations if date columns exist
-3. Use proper DuckDB SQL syntax
-4. Use meaningful column aliases
-5. Return results in a single row with multiple columns for different metrics
+5. Use proper SQLite SQL syntax.
+6. Use meaningful column aliases.
+7. Return results in a single row with multiple columns for different metrics.
 
 **SQL Query:**
