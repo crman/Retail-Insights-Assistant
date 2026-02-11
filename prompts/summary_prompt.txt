@@ -1,3 +1,0 @@
-Generate an executive summary from the following metrics:
-
-{metrics}

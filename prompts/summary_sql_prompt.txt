@@ -1,0 +1,22 @@
+You are an expert SQL query generator for retail analytics summaries.
+
+**Context:**
+Table: {table_name}
+
+{schema}
+
+**Task:**
+Generate a SQL query that provides a comprehensive summary of this dataset.
+
+**Requirements:**
+1. Return ONLY the SQL query, no explanations
+2. Include key metrics such as:
+   - Total record count
+   - Aggregations (SUM, AVG, MIN, MAX) for numeric columns
+   - Count of unique categories/groups
+   - Time-based aggregations if date columns exist
+3. Use proper DuckDB SQL syntax
+4. Use meaningful column aliases
+5. Return results in a single row with multiple columns for different metrics
+
+**SQL Query:**

@@ -1,83 +1,110 @@
-import json
-from langchain_core.prompts import PromptTemplate
+from typing import Dict, Any
 from langchain_groq import ChatGroq
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
-from langchain_community.vectorstores import FAISS
+from langchain_core.prompts import PromptTemplate
+
+from configs import config
+from utils.db_utils import get_table_schema
 
 
+# Initialize LLM
+llm = ChatGroq(model=config.LLM_MODEL, temperature=config.LLM_TEMPERATURE)
 
-llm = ChatGroq(model="llama-3.3-70b-versatile")
-db = FAISS.load_local(
-    "vector_store/vector_store/index", 
-    GoogleGenerativeAIEmbeddings(model="models/gemini-embedding-001"),
-    allow_dangerous_deserialization=True  # We trust this file as we created it
-)
 
-with open("prompts/query_generation_prompt.txt") as f:
-    template = f.read()
-
-PROMPT = PromptTemplate(
-    input_variables=["context", "question"],
-    template=template
-)
-
-def query_agent(state):
-    print("🔍 [QUERY AGENT] Starting query analysis...")
-    print(f"   Question: '{state['question']}'")
+def load_prompt_template(mode: str) -> PromptTemplate:
+    """
+    Load the appropriate prompt template based on mode.
+    """
+    prompt_file = f"prompts/{mode}_sql_prompt.txt"
     
-    # Skip vector search if no question (summary mode)
-    if not state["question"] or state["question"].strip() == "":
-        print("   ⏭️  No question provided (summary mode), skipping vector search")
-        print("   [QUERY AGENT] Complete!\n")
-        return {
-            "retrieved_context": "",
-            "structured_query": {}
-        }
+    with open(prompt_file, 'r') as f:
+        template = f.read()
     
-    # Retrieve relevant files and metadata
-    docs = db.similarity_search(state["question"], k=3)
-    print(f"\n   📚 Retrieved {len(docs)} relevant documents from vector store:")
-    for i, doc in enumerate(docs, 1):
-        print(f"      {i}. {doc.page_content[:80]}...")
-        if doc.metadata.get("file"):
-            print(f"         → File: {doc.metadata['file']}")
-    
-    # Extract file paths from metadata
-    relevant_files = [doc.metadata.get("file") for doc in docs if doc.metadata.get("file")]
-    print(f"\n   📁 Selected files: {relevant_files if relevant_files else 'None (using defaults)'}")
-    
-    # Build context
-    context = "\n".join([d.page_content for d in docs])
-    
-    # Generate structured query with file information
-    print("   🤖 Generating structured query with LLM...")
-    response = llm.invoke(
-        PROMPT.format(
-            context=context,
-            question=state["question"]
+    if mode == "qa":
+        return PromptTemplate(
+            input_variables=["table_name", "schema", "question"],
+            template=template
         )
-    ).content
+    else:  # summary
+        return PromptTemplate(
+            input_variables=["table_name", "schema"],
+            template=template
+        )
+
+
+def format_schema_for_prompt(schema: Dict[str, Any]) -> str:
+    """
+    Format schema information for LLM prompt.
+    """
+    lines = [
+        f"Table: {schema['table_name']}",
+        f"Total Rows: {schema['row_count']:,}",
+        "\nColumns:",
+    ]
     
-    print(f"   📝 Raw LLM Response: {response[:200]}...")  # Show first 200 chars
+    for col in schema['columns']:
+        # Handle both dict format (SQLite3) and tuple format (legacy)
+        if isinstance(col, dict):
+            col_name = col['name']
+            col_type = col['type']
+        else:
+            col_name, col_type = col
+        lines.append(f"  - {col_name} ({col_type})")
     
-    try:
-        query = json.loads(response)
-    except json.JSONDecodeError as e:
-        print(f"   ❌ JSON Parse Error: {e}")
-        print(f"   Full response: {response}")
-        # Fallback to a default query
-        query = {
-            "metric": "count",
-            "filters": {}
-        }
-        print(f"   ⚠️  Using fallback query: {query}")
+    return "\n".join(lines)
+
+
+def query_agent(state: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Generate SQL query from natural language question or summary request.
+    """
+    print("[QUERY AGENT] Starting SQL query generation...")
+    print(f"Mode: {state['mode'].upper()}")
+    print(f"Table: {state['table']}")
     
-    query["files"] = relevant_files  # Add file selection to query
+    if state['mode'] == 'qa':
+        print(f"Question: '{state['question']}'")
     
-    print(f"   ✅ Structured Query: {query}")
-    print("   [QUERY AGENT] Complete!\n")
+    # Get table schema
+    print("Retrieving table schema...")
+    schema = get_table_schema(state['table'])
+    print(f"Found {len(schema['columns'])} columns, {schema['row_count']:,} rows")
+    
+    # Format schema for prompt
+    schema_text = format_schema_for_prompt(schema)
+    
+    # Load appropriate prompt template
+    prompt_template = load_prompt_template(state['mode'])
+    
+    # Generate SQL query
+    print("Generating SQL query with LLM...")
+    
+    if state['mode'] == 'qa':
+        prompt_text = prompt_template.format(
+            table_name=state['table'],
+            schema=schema_text,
+            question=state['question']
+        )
+    else:  # summary
+        prompt_text = prompt_template.format(
+            table_name=state['table'],
+            schema=schema_text
+        )
+    
+    response = llm.invoke(prompt_text).content
+    
+    # Extract SQL query (remove markdown formatting if present)
+    sql_query = response.strip()
+    if sql_query.startswith("```sql"):
+        sql_query = sql_query.replace("```sql", "").replace("```", "").strip()
+    elif sql_query.startswith("```"):
+        sql_query = sql_query.replace("```", "").strip()
+    
+    print("Generated SQL Query:")
+    print(sql_query)
+    print("[QUERY AGENT] Complete")
+    print()
     
     return {
-        "retrieved_context": context,
-        "structured_query": query
+        "table_schema": schema,
+        "sql_query": sql_query
     }
