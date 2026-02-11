@@ -11,6 +11,9 @@ DATABASE_PATH = config.DATABASE_PATH
 def get_connection() -> sqlite3.Connection:
     """
     Create and return a database connection.
+    
+    Returns:
+        SQLite3 connection object
     """
     return sqlite3.connect(DATABASE_PATH)
 
@@ -18,55 +21,76 @@ def get_connection() -> sqlite3.Connection:
 def get_available_tables() -> List[str]:
     """
     Get list of all tables in the database.
+    
+    Returns:
+        List of table names
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
-    tables = [row[0] for row in cursor.fetchall()]
-    
-    conn.close()
-    return tables
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")
+        tables = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return tables
+    except Exception as e:
+        print(f"ERROR: Failed to retrieve tables: {e}")
+        return []
 
 
 def get_table_schema(table_name: str) -> Dict[str, Any]:
     """
     Get schema information for a specific table.
+    
+    Args:
+        table_name: Name of the table
+        
+    Returns:
+        Dictionary containing table schema information
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    # Get column information
-    cursor.execute(f"PRAGMA table_info({table_name})")
-    columns_info = cursor.fetchall()
-    
-    # Get row count
-    cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
-    row_count = cursor.fetchone()[0]
-    
-    conn.close()
-    
-    columns = [
-        {
-            "name": col[1],
-            "type": col[2],
-            "notnull": bool(col[3]),
-            "default": col[4],
-            "pk": bool(col[5])
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # Get column information
+        cursor.execute(f"PRAGMA table_info({table_name})")
+        columns_info = cursor.fetchall()
+        
+        # Get row count
+        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+        row_count = cursor.fetchone()[0]
+        
+        conn.close()
+        
+        columns = [
+            {
+                "name": col[1],
+                "type": col[2],
+                "notnull": bool(col[3]),
+                "default": col[4],
+                "pk": bool(col[5])
+            }
+            for col in columns_info
+        ]
+        
+        return {
+            "table_name": table_name,
+            "columns": columns,
+            "row_count": row_count
         }
-        for col in columns_info
-    ]
-    
-    return {
-        "table_name": table_name,
-        "columns": columns,
-        "row_count": row_count
-    }
+    except Exception as e:
+        print(f"ERROR: Failed to get schema for {table_name}: {e}")
+        return {"table_name": table_name, "columns": [], "row_count": 0}
 
 
 def get_table_preview(table_name: str) -> str:
     """
     Get a preview string for a table (for display purposes).
+    
+    Args:
+        table_name: Name of the table
+        
+    Returns:
+        String with table preview info
     """
     try:
         schema = get_table_schema(table_name)
@@ -87,40 +111,50 @@ def get_table_preview(table_name: str) -> str:
 
 def execute_sql_query(sql_query: str) -> List[Dict[str, Any]]:
     """
-    Execute a SQL query and return results.
+    Execute a SQL query and return results as a list of dictionaries.
+    
+    Args:
+        sql_query: SQL query string
+        
+    Returns:
+        List of dictionaries, each representing a row
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    cursor.execute(sql_query)
-    
-    # Get column names
-    column_names = [description[0] for description in cursor.description]
-    
-    # Fetch all rows
-    rows = cursor.fetchall()
-    
-    conn.close()
-    
-    # Convert to list of dictionaries
-    results = [
-        dict(zip(column_names, row))
-        for row in rows
-    ]
-    
-    return results
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute(sql_query)
+        
+        # Get column names
+        if cursor.description:
+            column_names = [description[0] for description in cursor.description]
+            # Fetch all rows
+            rows = cursor.fetchall()
+            results = [dict(zip(column_names, row)) for row in rows]
+        else:
+            results = []
+            
+        conn.close()
+        return results
+    except Exception as e:
+        print(f"ERROR: SQL execution failed: {e}")
+        raise e
 
 
 def format_results_for_display(results: List[Dict[str, Any]], limit: int = 10) -> str:
     """
-    Format query results for display.
+    Format query results for high-level display.
+    
+    Args:
+        results: List of result dictionaries
+        limit: Maximum number of rows to display
+        
+    Returns:
+        Formatted string representation
     """
     if not results:
         return "No results found"
     
     display_results = results[:limit]
-    
-    # Create formatted output
     output_lines = [f"Found {len(results)} result(s):"]
     
     for i, row in enumerate(display_results, 1):
@@ -135,7 +169,13 @@ def format_results_for_display(results: List[Dict[str, Any]], limit: int = 10) -
 
 def format_results_for_llm(results: List[Dict[str, Any]]) -> str:
     """
-    Format query results for LLM consumption.
+    Format query results into a structured format for LLM consumption.
+    
+    Args:
+        results: List of result dictionaries
+        
+    Returns:
+        Formatted string for LLM prompt
     """
     if not results:
         return "No results found"
