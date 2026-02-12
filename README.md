@@ -20,11 +20,11 @@ User Input → Query Agent → Data Agent → Validation Agent → Natural Langu
               (Text→SQL)    (Execute)     (Verify & Summarize)
 ```
 
-![System Architecture](graph.png)
-
 ### LangGraph Workflow
 
 The system uses **LangGraph** to orchestrate a stateful, multi-agent workflow. This allows for complex logic, error handling, and contextual memory across conversation turns.
+
+![System Architecture](graph.png)
 
 #### 1. Operation Modes
 
