@@ -20,6 +20,30 @@ User Input → Query Agent → Data Agent → Validation Agent → Natural Langu
               (Text→SQL)    (Execute)     (Verify & Summarize)
 ```
 
+![System Architecture](graph.png)
+
+### LangGraph Workflow
+
+The system uses **LangGraph** to orchestrate a stateful, multi-agent workflow. This allows for complex logic, error handling, and contextual memory across conversation turns.
+
+#### 1. Operation Modes
+
+- **QA Mode**: Used for specific user questions. The `Query Agent` uses conversation history and table schema to generate targeted SQL queries.
+- **Summary Mode**: Used for high-level dataset overviews. The `Query Agent` generates a series of comprehensive aggregation queries to analyze the entire table's distribution.
+
+#### 2. Nodes & Responsibilities
+
+- **Query Agent**: The entry point. It analyzes the user's intent, the database schema, and history to produce a valid SQLite query. If the user's request is ambiguous, it returns a `CLARIFICATION_REQUIRED` signal.
+- **Data Agent**: Responsible for safe execution. It runs the generated SQL against the SQLite database, handles execution errors, and formats the raw result sets.
+- **Validation Agent**: The final step. It reviews the data results and translates them into a professional, insight-driven natural language response.
+
+#### 3. Conditional Routing
+
+The graph implements **smart routing** based on the output of the Query Agent:
+
+- **Standard Path**: `Query Agent` → `Data Agent` → `Validation Agent`. This is used when a valid SQL query is generated.
+- **Clarification Path**: `Query Agent` → `Validation Agent`. If the Query Agent identifies an ambiguous request, it skips the Data Agent entirely and routes directly to Validation to ask the user for more details.
+
 ## Execution Guide
 
 Follow these steps to set up and run the assistant on your local machine.
