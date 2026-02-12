@@ -18,6 +18,7 @@ Generate a SQL query to answer the following question.
 7. Limit results to top 20 rows if returning multiple rows.
 8. Use meaningful column aliases for calculated fields.
 9. Handle NULL values appropriately.
+10. **Robust Matching**: For string filters (like customer names or products), use the pattern `LOWER(column_name) LIKE LOWER('%value%')` to ensure case-insensitive and partial matches, unless the user explicitly asks for an exact match.
 
 **Conversation History:**
 {history}

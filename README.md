@@ -74,11 +74,10 @@ pip install -r requirements.txt
 
 ### 3. Set Up Environment Variables
 
-Create a `.env` file in the root directory and add your API keys. The application supports Groq (default) and Google Gemini.
+Create a `.env` file in the root directory and add your API keys. The application supports Groq (default).
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
-GOOGLE_API_KEY=your_google_api_key_here # optional
 ```
 
 ### 4. Initialize Database
@@ -137,7 +136,6 @@ Retail-Insights-Assistant/
 - **LangGraph & LangChain**: Multi-agent orchestration and state management.
 - **SQLite3**: Local relational database for structured querying.
 - **Groq**: Ultra-fast LLM inference (Llama 3 / Mixtral).
-- **Google Gemini**: Alternative LLM provider support.
 - **Pandas**: Data cleaning and preprocessing during ingestion.
 
 ---
