@@ -144,15 +144,17 @@ Retail-Insights-Assistant/
 
 ### Assumptions
 
-- **Schema Clarity**: Assumes CSV column names are somewhat descriptive (e.g., `gross_amt` for revenue).
-- **Data Quality**: Assumes the ingestion script manages basic cleaning (handling commas in numeric strings, etc.).
-- **Single Table Focus**: Currently optimized for single-table deep dives rather than complex multi-table joins.
+- **Schema Mapping**: Assumes CSV column names are descriptive enough for the LLM to infer their business context (e.g., `gross_amt` as revenue).
+- **Relational Logic**: Assumes business questions can be accurately answered through standard SQL aggregations and filters.
+- **Structured Data**: Assumes input files follow a tabular structure consistent across the dataset.
+- **Partial Matching**: Built on the assumption that users may use partial or case-insensitive names, handled via robust `LOWER` and `LIKE` SQL patterns.
 
 ### Limitations
 
-- **Natural Language Complexity**: Highly ambiguous questions may still require user clarification.
-- **Aggregation Limits**: Complex statistical models (like linear regression) are out of scope for the current SQL generator.
-- **Local Context**: The system is limited by the context window of the LLM for extremely large schema definitions.
+- **Single-Table Scope**: Optimized for deep-dive analysis into one table at a time; multi-table joins are not supported in this iteration.
+- **Predictive Analytics**: Current scope is focused on descriptive/diagnostic historical analysis rather than predictive modeling or forecasting.
+- **SQLite Concurrency**: Best suited for local analytical workloads; not designed for high-concurrency enterprise write operations.
+- **Natural Language Edge Cases**: Extremely vague or symbolic queries may still require manual user clarification.
 
 ### Scaling to 100GB+ (Future Roadmap)
 
