@@ -156,11 +156,13 @@ Retail-Insights-Assistant/
 
 ### Scaling to 100GB+ (Future Roadmap)
 
-To handle enterprise-scale datasets (100GB+), the following architecture changes are planned:
+To transition this local prototype into an enterprise-scale system handling 100GB+ datasets, the following enhancements are planned:
 
-1. **Storage Layer Migration**: Transition from SQLite to **Snowflake or BigQuery**.
-2. **Semantic Search for Schema**: Use a vector database (e.g., Pinecone) to perform a "Metadata Search" so the LLM only sees the relevant table schemas for a specific question, reducing token usage.
-3. **Partitioning**: Leverage **Parquet** files partitioned by date/region for faster data retrieval.
-4. **Distributed Compute**: Use **Apache Spark** for pre-calculating common aggregations (Summary Tables).
-5. **Caching**: Implement **Semantic Caching** (Redis) to store natural language responses for frequently asked questions.
-6. **LangGraph Checkpointer Integration**: Use **LangGraph Checkpointer** for error recovery and session based state persistence.
+1. **Distributed Data Ingestion**: Transition to batch/stream ingestion into a Data Lake with distributed preprocessing and incremental ETL pipelines.
+2. **Partitioned Storage**: Migration from flat CSVs to partitioned **Parquet/Delta** formats (by date, region, or category) for efficient sub-set scanning.
+3. **Scalable Query Engines**: Moving the storage layer to an analytical warehouse (e.g., Snowflake, BigQuery) for high-performance server-side aggregations.
+4. **Semantic Metadata Search**: Implementing vector-based (RAG) schema retrieval to provide the LLM with only the most relevant table context for each query.
+5. **Pre-Aggregated KPI Tables**: Maintaining materialized views and summarized metrics so the LLM interacts with high-level insights rather than raw row data.
+6. **Advanced Orchestration**: Integration of **LangGraph Checkpointer** for error recovery and state persistence, alongside async agent execution.
+7. **Performance Caching**: Implementing semantic caching (Redis) for natural language responses and query results to improve concurrency and reduce cost.
+8. **Enterprise Monitoring**: Deploying an observability stack to track SQL latency, token usage, and the accuracy of the automated validation layer.
