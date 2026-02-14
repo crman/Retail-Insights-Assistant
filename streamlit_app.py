@@ -19,11 +19,17 @@ if "messages" not in st.session_state:
 if "last_table" not in st.session_state:
     st.session_state.last_table = None
 
-def clear_history():
+
+def clear_history(is_manual=False):
     st.session_state.history = []
-    st.session_state.messages = [
-        {"role": "assistant", "content": "👋 **History cleared.** How else can I help you analyze your data?"}
-    ]
+
+    if is_manual:
+        msg = "👋 **History cleared.** How else can I help you analyze your data?"
+    else:
+        msg = "👋 **Hello! I'm your Retail Insights Assistant.**\n\nI can help you analyze your sales data, find trends, or summarize entire datasets. How can I assist you today?"
+
+    st.session_state.messages = [{"role": "assistant", "content": msg}]
+
 
 # Sidebar for configuration
 with st.sidebar:
@@ -61,7 +67,7 @@ with st.sidebar:
     
     st.divider()
     if st.button("🗑️ Clear Chat History"):
-        clear_history()
+        clear_history(is_manual=True)
         st.rerun()
 
 # Main UI
@@ -88,8 +94,8 @@ if mode == "Summary Mode":
                 
                 st.success("Summary Generated!")
                 st.markdown("### Executive Summary")
-                st.write(result["final_answer"])
-                
+                st.markdown(result["final_answer"])
+
                 # Optionally show the SQL used
                 with st.expander("View SQL Analysis"):
                     st.code(result["sql_query"], language="sql")

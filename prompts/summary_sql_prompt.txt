@@ -17,8 +17,9 @@ Generate a SQL query that provides a comprehensive summary of this dataset.
    - Aggregations (SUM, AVG, MIN, MAX) for numeric columns
    - Count of unique categories/groups
    - Time-based aggregations if date columns exist
-5. Use proper SQLite SQL syntax.
-6. Use meaningful column aliases.
-7. Return results in a single row with multiple columns for different metrics.
+5. Use proper SQLite SQL syntax. Favor simple queries over complex nested string functions.
+6. **Date Handling**: If you need to find date ranges, use simple `MIN(date)` and `MAX(date)` unless the format explicitly requires conversion for sorting. Avoid deep nested `SUBSTR` or `INSTR` if they might break.
+7. Use meaningful column aliases.
+8. Return results in a single row with multiple columns for different metrics.
 
 **SQL Query:**

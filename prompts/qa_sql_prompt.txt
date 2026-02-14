@@ -18,7 +18,14 @@ Generate a SQL query to answer the following question.
 7. Limit results to top 20 rows if returning multiple rows.
 8. Use meaningful column aliases for calculated fields.
 9. Handle NULL values appropriately.
-10. **Robust Matching**: For string filters (like customer names or products), use the pattern `LOWER(column_name) LIKE LOWER('%value%')` to ensure case-insensitive and partial matches, unless the user explicitly asks for an exact match.
+10. **STRICT GLOBAL WILDCARDS**: For **ALL** string-based filters (customer, sku, style, etc.), you **MUST ALWAYS** use: `LOWER(column) LIKE LOWER('%value%')`. 
+    - **NEVER** use `=` or exact matching for strings.
+    - **NEVER** omit the `%` wildcards, even if the user provides what looks like a full name or ID.
+    - This is the most common reason for empty results. Be aggressive with wildcards.
+11. **Handling "Month-Year" Strings**: If a column (like `months`) contains values like "Jun-21":
+    - Filter using abbreviations (e.g., use `%Jan%` if the user says "January").
+    - For filtering by year, use `%21%`.
+    - **Note**: These are strings, so chronological sorting (`ORDER BY`) will be alphabetical unless you use a `CASE` statement or `SUBSTR` to convert them (only do this if sorting is explicitly requested).
 
 **Conversation History:**
 {history}
